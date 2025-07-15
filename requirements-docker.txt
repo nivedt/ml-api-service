@@ -1,0 +1,20 @@
+# Docker/Linux specific requirements
+# Core FastAPI and ASGI
+fastapi==0.115.12
+uvicorn[standard]==0.34.0
+pydantic==2.11.5
+
+# Machine Learning
+scikit-learn==1.6.1
+numpy==2.3.0
+pandas==2.3.0
+joblib==1.5.1
+
+# Database
+sqlalchemy==2.0.36
+
+# HTTP and networking
+httpx==0.28.1
+
+# Environment
+python-dotenv==1.0.1

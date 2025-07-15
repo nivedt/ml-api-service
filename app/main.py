@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routes import predict
+from app.routes import predict, analytics
 
 app = FastAPI(
     title = "Fake New Detection API",
@@ -8,6 +8,7 @@ app = FastAPI(
 )
 
 app.include_router(predict.router)
+app.include_router(analytics.router)
 
 @app.get("/")
 def root():
