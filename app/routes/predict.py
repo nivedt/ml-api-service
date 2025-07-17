@@ -8,6 +8,7 @@ import pickle
 
 from app.db.database import SessionLocal
 from app.db.models import PredictionLog
+from app.utils.analytics import tracker
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -102,6 +103,9 @@ async def predict_news(input_data: TextInput, db: Session = Depends(get_db)):
         db.add(log)
         db.commit()
         db.refresh(log)
+
+        # Log to analytics tracker
+        tracker.log_prediction(int(prediction))
 
         return PredictionResponse(
             prediction=int(prediction),

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from app.routes import predict, analytics
+from app.routes import predict
+from app.utils import analytics
 
 app = FastAPI(
     title = "Fake New Detection API",
