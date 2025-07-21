@@ -1,7 +1,8 @@
 # app/routes/predict.py
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.params import Depends
 from pydantic import BaseModel
+from app.auth.security import verify_api_key
 import joblib
 import os
 import pickle
@@ -72,7 +73,7 @@ def get_db():
         db.close()
 
 
-@router.post("/predict", response_model=PredictionResponse)
+@router.post("/predict", response_model=PredictionResponse, dependencies=[Depends(verify_api_key)])
 async def predict_news(input_data: TextInput, db: Session = Depends(get_db)):
     """Predict whether news is fake or real"""
     global model, vectorizer
@@ -127,8 +128,16 @@ async def model_status():
     }
 
 @router.get("/logs")
-async def get_logs(db: Session = Depends(get_db)):
-    logs = db.query(PredictionLog).order_by(PredictionLog.timestamp.desc()).limit(10).all()
+async def get_logs(
+        skip: int =Query(0, ge = 0),
+        limit: int = Query(10, le = 100),
+        db: Session = Depends(get_db)
+):
+    logs = db.query(PredictionLog)\
+        .order_by(PredictionLog.timestamp.desc())\
+        .offset(skip)\
+        .limit(limit)\
+        .all()
     return [
         {
             "input": log.input_text,
