@@ -1,11 +1,13 @@
 # app/routes/predict.py
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.params import Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.auth.security import verify_api_key
 import joblib
 import os
 import pickle
+import datetime
+import numpy as np
 
 from app.db.database import SessionLocal
 from app.db.models import PredictionLog
@@ -57,7 +59,7 @@ except Exception as e:
 
 
 class TextInput(BaseModel):
-    text: str
+    text: str = Field(..., example="NASA confirms water on Mars.")
 
 
 class PredictionResponse(BaseModel):
@@ -73,7 +75,13 @@ def get_db():
         db.close()
 
 
-@router.post("/predict", response_model=PredictionResponse, dependencies=[Depends(verify_api_key)])
+@router.post(
+    "/predict",
+    response_model=PredictionResponse,
+    summary="Predict if a news article is real or fake",
+    description="Returns a prediction (real/fake), label, and a model confidence score.",
+    dependencies=[Depends(verify_api_key)]
+)
 async def predict_news(input_data: TextInput, db: Session = Depends(get_db)):
     """Predict whether news is fake or real"""
     global model, vectorizer
@@ -94,7 +102,7 @@ async def predict_news(input_data: TextInput, db: Session = Depends(get_db)):
         confidence = max(model.predict_proba(text_vector)[0])
 
         # Convert prediction to label
-        label = "Real" if prediction == 1 else "Fake"
+        label = "real" if prediction == 1 else "fake"
 
         # Log to DB
         log = PredictionLog(
